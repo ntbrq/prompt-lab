@@ -133,3 +133,65 @@ All other dependencies (flask, sqlalchemy, pydantic, httpx, jinja2, pytest) were
 - `app/api/ai.py` — `create_config` handles form data + connection test
 - `app/api/resources.py` — form data support + HX-Redirect
 - `app/api/export_import.py` — HTMX-friendly import responses + bug fix
+
+## Bug Fixes Round 2 (2026-05-02 continued)
+
+### Toast JS rendered as plain text
+`x-init` attribute on `<body>` contained JS with `<i>` and `</span>` HTML tags. Browser HTML parser treated them as real DOM elements, breaking the JS and rendering it as visible text on the page.
+
+**Fix:** Moved all JS from `x-init` attribute to `<script>` tag. Used `document.createElement` instead of innerHTML for toast elements.
+
+### AI Optimization not working (3 root causes)
+1. `max_tokens=2048` too small for reasoning models (MIMO) — reasoning tokens consume budget, leaving `content` empty
+2. `chat_stream` yielded `None` values — `delta.get("content")` returns `None` for reasoning deltas, not missing key
+3. SSE `event:` prefix non-standard for `fetch` ReadableStream
+
+**Fix:**
+- `max_tokens` default: 2048 → 8192
+- `chat_stream`: `if "content" in delta` → `content = delta.get("content"); if content:`
+- SSE: removed `event:` lines, added `Cache-Control: no-cache` + `X-Accel-Buffering: no` headers
+
+### Search doesn't support Chinese
+SQLite FTS5 default `unicode61` tokenizer splits on whitespace — Chinese has no spaces, so no tokens generated.
+
+**Fix:** Recreated FTS5 table with `tokenize='trigram'` (requires SQLite ≥ 3.34). Trigram does character-level substring matching, works for any language. Short queries (<3 chars) fall back to LIKE.
+
+### Optimize page doesn't load prompt content
+Detail page linked to `/optimize?prompt_id=X` but the route and template ignored this parameter.
+
+**Fix:** Route reads `prompt_id` from URL, passes Prompt to template. Template `init()` loads content via API + Jinja injection.
+
+### Resources Collect button not working
+`@click.away` (Alpine.js) fires immediately when modal transitions from hidden to visible — opens and closes in same frame.
+
+**Fix:** Replaced with vanilla `onclick="if(event.target===this)"` on overlay div. API returns updated list partial instead of HX-Redirect for in-place updates.
+
+## Current State (as of 2026-05-03)
+
+### Working Features
+- Prompt CRUD with tags, categories, ratings, notes
+- Full-text search (FTS5 trigram + LIKE fallback, supports Chinese)
+- Template library (10 built-in templates)
+- AI optimization (5 modes, SSE streaming, works with MIMO reasoning model)
+- Multi-model comparison
+- Resource collection (collect → review → import workflow)
+- Import/Export (JSON + Markdown)
+- Global toast notifications
+- Settings page with AI provider management and connection testing
+
+### Known Limitations & Future Work
+1. **AI Optimization**: Only 5 basic modes. Could add: custom system prompts, few-shot examples, chain-of-thought optimization, A/B testing with metrics
+2. **Resource Collection**: Manual paste only. Could add: URL auto-fetch with BeautifulSoup, AI-powered summary and tag suggestion, batch import
+3. **Search**: Trigram tokenizer doesn't rank by relevance well (no BM25). Could add: search history, saved searches, advanced filters UI
+4. **UI/UX**: No drag-and-drop, no keyboard shortcuts, no dark mode, no mobile responsive layout, no prompt versioning
+5. **Data**: No backup/restore, no prompt usage tracking, no prompt sharing/explore
+
+### Architecture Notes
+- Reasoning models (MIMO, DeepSeek R1): `reasoning_content` is separate from `content` in API response. Streaming yields both — need to filter for non-null `content` only
+- HTMX pattern: use `HX-Redirect` for page navigation (create/delete), use partial returns for in-place updates (review, search)
+- Toast system: `sessionStorage` bridge for cross-redirect feedback
+
+### GitHub
+Repository: https://github.com/ntbrq/prompt-lab
+Branch: master
+Tests: 35 passing
