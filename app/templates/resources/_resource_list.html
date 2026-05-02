@@ -28,15 +28,19 @@
 
         {% if resource.status == 'pending_review' %}
         <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-            <button hx-put="/api/resources/{{ resource.id }}/review"
+            <button hx-put="/api/resources/{{ resource.id }}/review?status={{ status|default('pending_review') }}"
                 hx-vals='{"status": "approved"}'
                 hx-headers='{"Content-Type": "application/json"}'
+                hx-target="#resource-list"
+                hx-swap="innerHTML"
                 class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">
                 Approve
             </button>
-            <button hx-put="/api/resources/{{ resource.id }}/review"
+            <button hx-put="/api/resources/{{ resource.id }}/review?status={{ status|default('pending_review') }}"
                 hx-vals='{"status": "rejected"}'
                 hx-headers='{"Content-Type": "application/json"}'
+                hx-target="#resource-list"
+                hx-swap="innerHTML"
                 class="px-3 py-1.5 border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50">
                 Reject
             </button>

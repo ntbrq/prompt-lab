@@ -53,7 +53,9 @@ def create_resource():
     db.session.commit()
 
     if request.headers.get("HX-Request"):
-        return "", 201, {"HX-Redirect": "/resources"}
+        # Return updated list partial for in-place swap
+        resources = Resource.query.filter_by(status="pending_review").order_by(Resource.collected_at.desc()).all()
+        return render_template("resources/_resource_list.html", resources=resources, status="pending_review")
 
     return jsonify(resource.to_dict()), 201
 
@@ -85,7 +87,10 @@ def review_resource(resource_id):
     db.session.commit()
 
     if request.headers.get("HX-Request"):
-        return "", 200, {"HX-Redirect": "/resources"}
+        # Return updated list partial for in-place swap
+        status = request.args.get("status", "pending_review")
+        resources = Resource.query.filter_by(status=status).order_by(Resource.collected_at.desc()).all()
+        return render_template("resources/_resource_list.html", resources=resources, status=status)
 
     return jsonify(resource.to_dict())
 
