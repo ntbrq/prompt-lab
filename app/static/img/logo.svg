@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#2563eb"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Flask body -->
+  <path d="M42 18 L42 45 L22 85 C18 93 24 102 34 102 L86 102 C96 102 102 93 98 85 L78 45 L78 18"
+    fill="url(#grad)" stroke="none" rx="4"/>
+
+  <!-- Flask neck -->
+  <rect x="42" y="12" width="36" height="8" rx="3" fill="url(#grad)"/>
+  <rect x="38" y="8" width="44" height="6" rx="3" fill="url(#grad)"/>
+
+  <!-- Liquid inside -->
+  <path d="M30 78 L22 85 C18 93 24 102 34 102 L86 102 C96 102 102 93 98 85 L90 78 C80 72 40 72 30 78 Z"
+    fill="url(#liquid)" opacity="0.7"/>
+
+  <!-- Bubbles -->
+  <circle cx="45" cy="88" r="3" fill="white" opacity="0.5"/>
+  <circle cx="60" cy="92" r="2" fill="white" opacity="0.4"/>
+  <circle cx="72" cy="85" r="2.5" fill="white" opacity="0.45"/>
+
+  <!-- Sparkle / magic wand -->
+  <g transform="translate(82, 28) rotate(30)">
+    <line x1="0" y1="-10" x2="0" y2="10" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="-10" y1="0" x2="10" y2="0" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="-7" y1="-7" x2="7" y2="7" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-7" y1="7" x2="7" y2="-7" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Small sparkles -->
+  <circle cx="95" cy="18" r="1.5" fill="#fbbf24"/>
+  <circle cx="100" cy="38" r="1" fill="#fbbf24" opacity="0.7"/>
+
+  <!-- Text: PL -->
+  <text x="60" y="96" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="14" fill="white" opacity="0.9">PL</text>
+</svg>

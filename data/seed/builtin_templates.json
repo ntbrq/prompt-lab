@@ -1,0 +1,72 @@
+[
+    {
+        "title": "Role-based Expert",
+        "content": "You are an expert in {field} with {years} years of experience. When I ask questions about {field}, provide detailed, accurate answers with practical examples. If you're unsure about something, say so rather than guessing.",
+        "category": "General",
+        "tags": ["role", "expert"],
+        "description": "Assign a specific expert role to the AI for domain-specific responses."
+    },
+    {
+        "title": "Step-by-Step Reasoning",
+        "content": "Think through this problem step by step. For each step:\n1. State what you're doing and why\n2. Show your work\n3. Verify the result before moving on\n\nProblem: {problem}",
+        "category": "Analysis",
+        "tags": ["reasoning", "chain-of-thought"],
+        "description": "Force the AI to show its reasoning process for complex problems."
+    },
+    {
+        "title": "Code Reviewer",
+        "content": "Review the following code for:\n1. Correctness and logic errors\n2. Performance issues\n3. Security vulnerabilities\n4. Code style and best practices\n5. Readability and maintainability\n\nFor each issue found, explain the problem and suggest a fix.\n\nLanguage: {language}\nCode:\n```{language}\n{code}\n```",
+        "category": "Coding",
+        "tags": ["code-review", "quality"],
+        "description": "Structured code review covering correctness, performance, security, and style."
+    },
+    {
+        "title": "Teaching Explanation",
+        "content": "Explain {concept} to a {level} student. Use:\n- Simple language appropriate for their level\n- Real-world analogies they can relate to\n- A concrete example to illustrate the concept\n- A quick quiz question at the end to test understanding\n\nAvoid jargon unless you define it first.",
+        "category": "Education",
+        "tags": ["teaching", "explanation"],
+        "description": "Adapt explanations to student level with analogies and examples."
+    },
+    {
+        "title": "Comparative Analysis",
+        "content": "Compare and contrast {option_a} and {option_b} across these dimensions:\n1. {dimension_1}\n2. {dimension_2}\n3. {dimension_3}\n\nFor each dimension:\n- State the key difference\n- Provide evidence or examples\n- Indicate which option has the advantage\n\nEnd with a summary recommendation based on {context}.",
+        "category": "Analysis",
+        "tags": ["comparison", "decision"],
+        "description": "Structured comparison of two options across multiple dimensions."
+    },
+    {
+        "title": "Writing Improver",
+        "content": "Improve the following text while maintaining its original meaning and tone. Focus on:\n- Clarity and conciseness\n- Grammar and punctuation\n- Stronger word choices\n- Better sentence flow\n\nOriginal text:\n{text}\n\nProvide the improved version, then briefly list the key changes you made.",
+        "category": "Writing",
+        "tags": ["editing", "improvement"],
+        "description": "Improve text quality while preserving meaning and tone."
+    },
+    {
+        "title": "Structured Prompt Generator",
+        "content": "I need a prompt for: {task_description}\n\nCreate a well-structured prompt that includes:\n1. A clear role definition\n2. Specific instructions\n3. Input/output format expectations\n4. Constraints and guidelines\n5. Examples if helpful\n\nThe prompt should be reusable and produce consistent results.",
+        "category": "General",
+        "tags": ["meta", "prompt-engineering"],
+        "description": "Generate well-structured prompts for any task description."
+    },
+    {
+        "title": "Lesson Plan Generator",
+        "content": "Create a detailed lesson plan for teaching {topic} to {audience}.\n\nInclude:\n1. Learning objectives (3-5 measurable goals)\n2. Prerequisites students should have\n3. Introduction/hook activity (5 min)\n4. Main content breakdown with timing\n5. Hands-on activity or exercise\n6. Assessment questions\n7. Homework/further reading suggestions\n\nTotal duration: {duration}\nTeaching style: {style}",
+        "category": "Education",
+        "tags": ["lesson-plan", "teaching"],
+        "description": "Generate complete lesson plans with objectives, activities, and assessments."
+    },
+    {
+        "title": "Debug Helper",
+        "content": "I'm getting this error:\n```\n{error_message}\n```\n\nContext:\n- Language/Framework: {language}\n- What I was trying to do: {goal}\n- What I've already tried: {attempted_fixes}\n\nPlease:\n1. Explain what the error means in simple terms\n2. Identify the most likely cause\n3. Provide a step-by-step fix\n4. Suggest how to prevent this in the future",
+        "category": "Coding",
+        "tags": ["debugging", "error-handling"],
+        "description": "Structured debugging assistance with error analysis and prevention tips."
+    },
+    {
+        "title": "Content Summarizer",
+        "content": "Summarize the following content in {format} format.\n\nLength: approximately {length}\nAudience: {audience}\nFocus on: {focus_areas}\n\nContent:\n{content}\n\nInclude the key takeaways as bullet points at the end.",
+        "category": "Writing",
+        "tags": ["summary", "extraction"],
+        "description": "Summarize content with configurable format, length, and audience."
+    }
+]

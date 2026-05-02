@@ -1,0 +1,60 @@
+{# HTMX partial: resource list #}
+<div class="space-y-3">
+    {% for resource in resources %}
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <div class="flex items-start justify-between">
+            <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-gray-900">{{ resource.title }}</h3>
+                {% if resource.url %}
+                <a href="{{ resource.url }}" target="_blank" class="text-xs text-primary-600 hover:underline truncate block">{{ resource.url }}</a>
+                {% endif %}
+                {% if resource.summary %}
+                <p class="text-sm text-gray-600 mt-2">{{ resource.summary }}</p>
+                {% endif %}
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full ml-3 flex-shrink-0
+                {% if resource.status == 'pending_review' %}bg-yellow-50 text-yellow-700
+                {% elif resource.status == 'approved' %}bg-green-50 text-green-700
+                {% elif resource.status == 'rejected' %}bg-red-50 text-red-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ resource.status }}
+            </span>
+        </div>
+
+        <details class="mt-3">
+            <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600">View content</summary>
+            <pre class="mt-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 max-h-40 overflow-auto">{{ resource.content }}</pre>
+        </details>
+
+        {% if resource.status == 'pending_review' %}
+        <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <button hx-put="/api/resources/{{ resource.id }}/review"
+                hx-vals='{"status": "approved"}'
+                hx-headers='{"Content-Type": "application/json"}'
+                class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">
+                Approve
+            </button>
+            <button hx-put="/api/resources/{{ resource.id }}/review"
+                hx-vals='{"status": "rejected"}'
+                hx-headers='{"Content-Type": "application/json"}'
+                class="px-3 py-1.5 border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50">
+                Reject
+            </button>
+        </div>
+        {% elif resource.status == 'approved' %}
+        <div class="mt-3 pt-3 border-t border-gray-100">
+            <button hx-post="/api/resources/{{ resource.id }}/import"
+                hx-headers='{"Content-Type": "application/json"}'
+                class="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700">
+                Import as Prompt
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400">
+        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+        <div>No resources{% if status == 'pending_review' %} pending review{% endif %}</div>
+    </div>
+    {% endfor %}
+</div>

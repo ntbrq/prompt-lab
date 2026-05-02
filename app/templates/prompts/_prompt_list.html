@@ -1,0 +1,47 @@
+{# HTMX partial: prompt list items #}
+<div class="space-y-3">
+    {% for prompt in prompts %}
+    <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow prompt-card">
+        <div class="flex items-start justify-between">
+            <a href="/prompts/{{ prompt.id }}" class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900">{{ prompt.title }}</div>
+                <div class="text-sm text-gray-500 mt-1 line-clamp-2">{{ prompt.content[:200] }}</div>
+            </a>
+            <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+                {% if prompt.is_favorite %}
+                <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>
+                {% endif %}
+                {% if prompt.result_quality %}
+                <span class="text-xs text-gray-400">{{ prompt.result_quality }}/5</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex items-center gap-2 mt-3">
+            {% if prompt.category %}
+            <span class="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">{{ prompt.category.name }}</span>
+            {% endif %}
+            {% for tag in prompt.tags[:5] %}
+            <span class="text-xs px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full">{{ tag.name }}</span>
+            {% endfor %}
+            <span class="text-xs text-gray-400 ml-auto">{{ prompt.updated_at.strftime('%m-%d %H:%M') if prompt.updated_at else '' }}</span>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400">
+        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+        <div>No prompts found</div>
+        <a href="/prompts/new" class="text-primary-600 hover:underline text-sm mt-1 inline-block">Create one</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% if pages > 1 %}
+<div class="flex justify-center gap-2 mt-6">
+    {% for p in range(1, pages + 1) %}
+    <button hx-get="/api/prompts?page={{ p }}" hx-target="#prompt-list"
+        class="px-3 py-1.5 text-sm rounded {{ 'bg-primary-600 text-white' if p == page else 'bg-white border border-gray-300 hover:bg-gray-50' }}">
+        {{ p }}
+    </button>
+    {% endfor %}
+</div>
+{% endif %}
