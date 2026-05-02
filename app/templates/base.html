@@ -21,75 +21,7 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen" x-data="{ sidebarOpen: true }" x-init="
-    // Global toast system
-    window.toast = function(msg, type) {
-        type = type || 'info';
-        let container = document.getElementById('toast-container');
-        if (!container) return;
-        let el = document.createElement('div');
-        let colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-gray-800', warning: 'bg-yellow-600' };
-        let icons = { success: 'check-circle', error: 'alert-circle', info: 'info', warning: 'alert-triangle' };
-        el.className = 'flex items-center gap-2 px-4 py-3 rounded-lg text-white text-sm shadow-lg ' + (colors[type] || colors.info) + ' transform transition-all duration-300 translate-x-full opacity-0';
-        el.innerHTML = '<i data-lucide=\"' + (icons[type] || icons.info) + '\" class=\"w-4 h-4 flex-shrink-0\"></i><span>' + msg + '</span>';
-        container.appendChild(el);
-        lucide.createIcons({ nodes: [el] });
-        requestAnimationFrame(function() { el.classList.remove('translate-x-full', 'opacity-0'); });
-        setTimeout(function() {
-            el.classList.add('translate-x-full', 'opacity-0');
-            setTimeout(function() { el.remove(); }, 300);
-        }, 3000);
-    };
-
-    // Persist toast across HX-Redirect page navigations
-    window.toastAfterRedirect = function(msg, type) {
-        sessionStorage.setItem('_pending_toast', JSON.stringify({ msg: msg, type: type || 'success' }));
-    };
-
-    // Show pending toast from sessionStorage on page load
-    (function() {
-        var pending = sessionStorage.getItem('_pending_toast');
-        if (pending) {
-            sessionStorage.removeItem('_pending_toast');
-            try {
-                var t = JSON.parse(pending);
-                window.toast(t.msg, t.type);
-            } catch(e) {}
-        }
-    })();
-
-    // HTMX event hooks for global feedback
-    document.body.addEventListener('htmx:afterRequest', function(e) {
-        var xhr = e.detail.xhr;
-        var path = e.detail.pathInfo ? e.detail.pathInfo.requestPath : '';
-        var method = e.detail.requestConfig ? e.detail.requestConfig.verb : '';
-
-        // Skip silent endpoints
-        if (path.includes('/api/search') || (path.includes('/api/prompts') && method === 'get')) return;
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-            if (method === 'get') return;
-
-            var msg = 'Operation successful';
-            if (xhr.status === 201 && method === 'post') msg = 'Created successfully';
-            if (xhr.status === 204) msg = 'Deleted successfully';
-            if (path.includes('favorite')) msg = xhr.responseText.includes('true') ? 'Added to favorites' : 'Removed from favorites';
-
-            try { var d = JSON.parse(xhr.responseText); if (d.message) msg = d.message; } catch(e) {}
-
-            // If HX-Redirect is set, persist toast for after navigation
-            if (xhr.getResponseHeader('HX-Redirect')) {
-                window.toastAfterRedirect(msg, 'success');
-                return;
-            }
-            window.toast(msg, 'success');
-        } else if (xhr.status >= 400) {
-            var errMsg = 'Operation failed';
-            try { var d = JSON.parse(xhr.responseText); errMsg = d.error || errMsg; } catch(e) {}
-            window.toast(errMsg, 'error');
-        }
-    });
-">
+<body class="bg-gray-50 text-gray-900 min-h-screen" x-data="{ sidebarOpen: true }">
     <!-- Toast container -->
     <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm"></div>
 
@@ -166,6 +98,78 @@
         lucide.createIcons();
         document.addEventListener('htmx:afterSwap', function() { lucide.createIcons(); });
         document.addEventListener('htmx:afterSettle', function() { lucide.createIcons(); });
+
+        // Global toast system
+        window.toast = function(msg, type) {
+            type = type || 'info';
+            var container = document.getElementById('toast-container');
+            if (!container) return;
+            var el = document.createElement('div');
+            var colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-gray-800', warning: 'bg-yellow-600' };
+            var icons = { success: 'check-circle', error: 'alert-circle', info: 'info', warning: 'alert-triangle' };
+            el.className = 'flex items-center gap-2 px-4 py-3 rounded-lg text-white text-sm shadow-lg ' + (colors[type] || colors.info) + ' transform transition-all duration-300 translate-x-full opacity-0';
+            var iconEl = document.createElement('i');
+            iconEl.setAttribute('data-lucide', icons[type] || icons.info);
+            iconEl.className = 'w-4 h-4 flex-shrink-0';
+            var spanEl = document.createElement('span');
+            spanEl.textContent = msg;
+            el.appendChild(iconEl);
+            el.appendChild(spanEl);
+            container.appendChild(el);
+            lucide.createIcons({ nodes: [el] });
+            requestAnimationFrame(function() { el.classList.remove('translate-x-full', 'opacity-0'); });
+            setTimeout(function() {
+                el.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(function() { el.remove(); }, 300);
+            }, 3000);
+        };
+
+        // Persist toast across HX-Redirect page navigations
+        window.toastAfterRedirect = function(msg, type) {
+            sessionStorage.setItem('_pending_toast', JSON.stringify({ msg: msg, type: type || 'success' }));
+        };
+
+        // Show pending toast from sessionStorage on page load
+        (function() {
+            var pending = sessionStorage.getItem('_pending_toast');
+            if (pending) {
+                sessionStorage.removeItem('_pending_toast');
+                try {
+                    var t = JSON.parse(pending);
+                    window.toast(t.msg, t.type);
+                } catch(e) {}
+            }
+        })();
+
+        // HTMX event hooks for global feedback
+        document.body.addEventListener('htmx:afterRequest', function(e) {
+            var xhr = e.detail.xhr;
+            var path = e.detail.pathInfo ? e.detail.pathInfo.requestPath : '';
+            var method = e.detail.requestConfig ? e.detail.requestConfig.verb : '';
+
+            if (path.includes('/api/search') || (path.includes('/api/prompts') && method === 'get')) return;
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+                if (method === 'get') return;
+
+                var msg = 'Operation successful';
+                if (xhr.status === 201 && method === 'post') msg = 'Created successfully';
+                if (xhr.status === 204) msg = 'Deleted successfully';
+                if (path.includes('favorite')) msg = xhr.responseText.includes('true') ? 'Added to favorites' : 'Removed from favorites';
+
+                try { var d = JSON.parse(xhr.responseText); if (d.message) msg = d.message; } catch(e) {}
+
+                if (xhr.getResponseHeader('HX-Redirect')) {
+                    window.toastAfterRedirect(msg, 'success');
+                    return;
+                }
+                window.toast(msg, 'success');
+            } else if (xhr.status >= 400) {
+                var errMsg = 'Operation failed';
+                try { var d = JSON.parse(xhr.responseText); errMsg = d.error || errMsg; } catch(e) {}
+                window.toast(errMsg, 'error');
+            }
+        });
     </script>
 
     {% block scripts %}{% endblock %}
