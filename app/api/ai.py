@@ -46,10 +46,14 @@ def optimize():
             target_language=data.get("target_language"),
         ):
             full_text += chunk
-            yield f"event: chunk\ndata: {json.dumps({'text': chunk})}\n\n"
-        yield f"event: done\ndata: {json.dumps({'full_text': full_text})}\n\n"
+            yield f"data: {json.dumps({'text': chunk})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'full_text': full_text})}\n\n"
 
-    return Response(generate(), mimetype="text/event-stream")
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @bp.route("/compare", methods=["POST"])
