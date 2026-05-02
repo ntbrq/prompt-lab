@@ -8,7 +8,7 @@ class OpenAICompatibleProvider:
         self.base_url = base_url.rstrip("/")
         self.default_model = default_model
 
-    def chat(self, messages: list[dict], model: str = None, max_tokens: int = 2048, temperature: float = 0.7) -> str:
+    def chat(self, messages: list[dict], model: str = None, max_tokens: int = 8192, temperature: float = 0.7) -> str:
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -27,7 +27,7 @@ class OpenAICompatibleProvider:
             data = resp.json()
             return data["choices"][0]["message"]["content"]
 
-    def chat_stream(self, messages: list[dict], model: str = None, max_tokens: int = 2048, temperature: float = 0.7):
+    def chat_stream(self, messages: list[dict], model: str = None, max_tokens: int = 8192, temperature: float = 0.7):
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -53,7 +53,8 @@ class OpenAICompatibleProvider:
                     try:
                         chunk = json.loads(data_str)
                         delta = chunk["choices"][0].get("delta", {})
-                        if "content" in delta:
-                            yield delta["content"]
+                        content = delta.get("content")
+                        if content:
+                            yield content
                     except (json.JSONDecodeError, KeyError, IndexError):
                         continue

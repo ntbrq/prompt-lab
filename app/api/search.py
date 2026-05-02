@@ -18,46 +18,54 @@ def search():
     from_date = request.args.get("from_date")
     to_date = request.args.get("to_date")
 
-    # Use raw SQL for FTS5 search
-    sql = """
-        SELECT rowid, bm25(prompts_fts) as rank
-        FROM prompts_fts
-        WHERE prompts_fts MATCH :query
-        ORDER BY rank
-        LIMIT 50
-    """
+    # Escape double quotes in query for FTS5
+    safe_q = q.replace('"', '""')
 
-    try:
-        conn = db.engine.raw_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, {"query": q})
-        rows = cursor.fetchall()
-        conn.close()
+    # Trigram tokenizer requires >= 3 chars; short queries go directly to LIKE
+    use_fts = len(q) >= 3
+    results = []
 
-        ids = [row[0] for row in rows]
-        if not ids:
-            if request.headers.get("HX-Request"):
-                return '<div class="text-center py-6 text-gray-400">No results</div>'
-            return jsonify({"items": [], "total": 0})
+    if use_fts:
+        # Trigram tokenizer: column filter for substring matching
+        fts_query = f'title : "{safe_q}" OR content : "{safe_q}" OR notes : "{safe_q}"'
 
-        query = Prompt.query.filter(Prompt.id.in_(ids))
+        sql = """
+            SELECT rowid, rank
+            FROM prompts_fts
+            WHERE prompts_fts MATCH :query
+            ORDER BY rank
+            LIMIT 50
+        """
 
-        if category_id:
-            query = query.filter(Prompt.category_id == category_id)
-        if tag:
-            query = query.filter(Prompt.tags.any(Tag.name == tag))
-        if from_date:
-            query = query.filter(Prompt.created_at >= from_date)
-        if to_date:
-            query = query.filter(Prompt.created_at <= to_date)
+        try:
+            conn = db.engine.raw_connection()
+            cursor = conn.cursor()
+            cursor.execute(sql, {"query": fts_query})
+            rows = cursor.fetchall()
+            conn.close()
 
-        results = query.all()
-        # Preserve FTS ranking order
-        id_to_rank = {row[0]: row[1] for row in rows}
-        results.sort(key=lambda p: id_to_rank.get(p.id, 0))
+            ids = [row[0] for row in rows]
+            if ids:
+                query = Prompt.query.filter(Prompt.id.in_(ids))
 
-    except Exception:
-        # Fallback to LIKE search if FTS5 fails
+                if category_id:
+                    query = query.filter(Prompt.category_id == category_id)
+                if tag:
+                    query = query.filter(Prompt.tags.any(Tag.name == tag))
+                if from_date:
+                    query = query.filter(Prompt.created_at >= from_date)
+                if to_date:
+                    query = query.filter(Prompt.created_at <= to_date)
+
+                results = query.all()
+                # Preserve FTS ranking order
+                id_to_rank = {row[0]: row[1] for row in rows}
+                results.sort(key=lambda p: id_to_rank.get(p.id, 0))
+        except Exception:
+            pass
+
+    # Fallback to LIKE if FTS returned nothing (including short queries)
+    if not results:
         query = Prompt.query.filter(
             db.or_(
                 Prompt.title.ilike(f"%{q}%"),
@@ -65,6 +73,10 @@ def search():
                 Prompt.notes.ilike(f"%{q}%"),
             )
         )
+        if category_id:
+            query = query.filter(Prompt.category_id == category_id)
+        if tag:
+            query = query.filter(Prompt.tags.any(Tag.name == tag))
         results = query.limit(50).all()
 
     if request.headers.get("HX-Request"):

@@ -40,17 +40,30 @@ def create_app(config_class=None):
 
 
 def _create_fts_triggers():
-    """Create FTS5 virtual table and sync triggers."""
+    """Create FTS5 virtual table with trigram tokenizer (supports CJK substring matching) and sync triggers."""
     conn = db.engine.raw_connection()
     try:
         cursor = conn.cursor()
+
+        # Check if existing FTS table uses trigram; if not, recreate it
+        cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='prompts_fts'")
+        row = cursor.fetchone()
+        needs_rebuild = row is not None and "trigram" not in (row[0] or "")
+
+        if needs_rebuild:
+            cursor.execute("DROP TABLE IF EXISTS prompts_fts")
+            cursor.execute("DROP TRIGGER IF EXISTS prompts_fts_ai")
+            cursor.execute("DROP TRIGGER IF EXISTS prompts_fts_ad")
+            cursor.execute("DROP TRIGGER IF EXISTS prompts_fts_au")
+
         cursor.executescript("""
             CREATE VIRTUAL TABLE IF NOT EXISTS prompts_fts USING fts5(
                 title,
                 content,
                 notes,
                 content=prompts,
-                content_rowid=id
+                content_rowid=id,
+                tokenize='trigram'
             );
 
             CREATE TRIGGER IF NOT EXISTS prompts_fts_ai AFTER INSERT ON prompts BEGIN
@@ -70,6 +83,11 @@ def _create_fts_triggers():
                 VALUES (new.id, new.title, new.content, new.notes);
             END;
         """)
+
+        # Rebuild index if we recreated the table
+        if needs_rebuild:
+            cursor.execute("INSERT INTO prompts_fts(prompts_fts) VALUES('rebuild')")
+
         conn.commit()
     finally:
         conn.close()
